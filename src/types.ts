@@ -16,8 +16,8 @@ export type QuartzTransformerPluginInstance = {
   name: string
   textTransform?: (ctx: BuildCtx, src: string) => string
   markdownPlugins?: (ctx: BuildCtx) => PluggableList
-  htmlPlugins?: (ctx: BuildCtx) => PluggableList
-  externalResources?: (ctx: BuildCtx) => Partial<StaticResources>
+  htmlPlugins?: (ctx?: BuildCtx) => PluggableList
+  externalResources?: (ctx?: BuildCtx) => Partial<StaticResources>
 }
 
 export type QuartzTransformerPlugin<Options extends object | undefined = undefined> = (
