@@ -1,60 +1,72 @@
-# quartz-plugins
+# captains-log-quartz-plugin
 
-Two Quartz v4 transformer plugins for the Captain's Log / wod.wiki Quartz installation.
+> **Status page** — this README tracks implementation progress. It will be replaced with full setup and usage documentation in [issue #11](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/11) once all phases are complete.
 
-## Plugins
+Two Quartz v4 transformer plugins:
 
-### 1. `EditableHeadings`
+| Plugin | What it does |
+|--------|-------------|
+| **EditableHeadings** | Injects a ✏️ edit icon next to every heading. Click to edit inline; generates a unified diff and POSTs it to `/api/diff` on save. |
+| **EmbeddedCommands** | Parses `[[cmd:command-name]]` directives in Markdown; renders a ▶ Run button that POSTs to `/api/run-command` and streams stdout back to the page. |
 
-Injects a ✏️ edit icon next to every `h1`–`h4` heading. Clicking it activates an
-inline editor (contenteditable) for that section's content. On save, a unified diff
-is generated client-side and posted to a small server endpoint, which writes it to a
-file for later review.
+---
 
-**Flow:**
+## Implementation Status
+
+### Phase 1 — Setup & EditableHeadings
+
+| # | Issue | Status |
+|---|-------|--------|
+| 1 | [Install dependencies and verify TypeScript compilation](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/6) | 🔲 open |
+| 2 | [Implement EditableHeadings rehype transformer](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/7) | 🔲 open |
+| 3 | [Write client-side edit / diff / save JavaScript](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/8) | 🔲 open |
+| 4 | [Tests for EditableHeadings plugin](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/9) | 🔲 open |
+
+### Phase 2 — EmbeddedCommands
+
+| # | Issue | Status |
+|---|-------|--------|
+| 5 | [Implement EmbeddedCommands textTransform and rehype injection](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/1) | 🔲 open |
+| 6 | [Write client-side run / stream JavaScript](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/2) | 🔲 open |
+| 7 | [Tests for EmbeddedCommands plugin](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/3) | 🔲 open |
+
+### Phase 3 — Express Server
+
+| # | Issue | Status |
+|---|-------|--------|
+| 8 | [Implement POST /api/diff endpoint](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/4) | 🔲 open |
+| 9 | [Implement POST /api/run-command endpoint with allow-list](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/5) | 🔲 open |
+
+### Phase 4 — Integration & Docs
+
+| # | Issue | Status |
+|---|-------|--------|
+| 10 | [Integration test: mount plugins in a real Quartz repo](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/10) | 🔲 open |
+| 11 | [Write final README](https://github.com/SergeiGolos/captains-log-quartz-plugin/issues/11) | 🔲 open |
+
+---
+
+## Repository Structure
+
 ```
-User clicks ✏️ → section becomes editable → user edits → clicks Save
-  → client generates diff → POST /api/diff → server writes <slug>-<heading>.patch
+captains-log-quartz-plugin/
+├── src/
+│   ├── plugins/
+│   │   ├── editableHeadings.ts   # rehype transformer — injects edit buttons
+│   │   └── embeddedCommands.ts   # textTransform + rehype — [[cmd:name]] directives
+│   ├── types.ts                  # Quartz plugin type stubs
+│   ├── resources.ts              # JSResource / CSSResource stubs
+│   └── index.ts                  # re-exports
+├── server/
+│   ├── index.ts                  # Express: /api/diff + /api/run-command
+│   └── commands.yaml             # allow-list of executable commands
+├── tests/
+├── docs/plans/
+│   └── 2026-04-27-quartz-plugins.md   # full implementation plan
+├── package.json
+└── tsconfig.json
 ```
 
-### 2. `EmbeddedCommands`
+---
 
-Parses `[[cmd:command-name]]` directives embedded in Markdown. At render time a
-button is injected into the page. When clicked, the browser POSTs to
-`/api/run-command` with `{ name: "command-name" }`. The server looks up the command
-in a pre-registered allow-list (`commands.yaml`) and executes it, streaming stdout
-back to the page.
-
-**Syntax:**
-```markdown
-[[cmd:rebuild-index]]
-[[cmd:clear-cache]]
-```
-
-## Development
-
-```bash
-# Install deps
-npm install
-
-# Build (outputs to dist/)
-npm run build
-
-# Tests
-npm test
-
-# Link into your Quartz install
-# Copy src/plugins/*.ts → quartz/plugins/transformers/
-# Add exports to quartz/plugins/transformers/index.ts
-# Register in quartz.config.ts
-```
-
-## Server Component
-
-Both plugins require a small Express server running alongside Quartz's dev/prod
-server. See `server/` directory.
-
-## Docs
-
-- [Implementation Plan](docs/plans/2026-04-27-quartz-plugins.md)
-- [Plugin Architecture Research](docs/getting-started.md)
+*See [docs/plans/2026-04-27-quartz-plugins.md](docs/plans/2026-04-27-quartz-plugins.md) for the full TDD implementation plan.*
