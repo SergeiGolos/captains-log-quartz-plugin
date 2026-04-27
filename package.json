@@ -8,6 +8,18 @@
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "dev": "tsc --watch"
   },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "extensionsToTreatAsEsm": [".ts"],
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/tests"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": ["ts-jest", { "useESM": true }]
+    }
+  },
   "devDependencies": {
     "@types/jest": "^29.0.0",
     "@types/node": "^20.0.0",

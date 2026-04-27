@@ -1,26 +1,52 @@
 /**
  * EditableHeadings — Quartz v4 Transformer Plugin
  *
- * Injects an edit icon (✏️) next to each heading. Clicking it:
- *   1. Activates contenteditable on that section's content
- *   2. Shows Save / Cancel buttons
- *   3. On Save: generates a unified diff and POSTs to /api/diff
+ * Injects an edit icon (✏️) next to each heading. The heading content is
+ * wrapped in a `<span data-heading-id="slug">` for targeting, and a sibling
+ * `<button class="edit-heading-btn">` is appended after that span. Clicking
+ * the button will (Task 4):
+ *   1. Activate contenteditable on that section's content
+ *   2. Show Save / Cancel buttons
+ *   3. On Save: generate a unified diff and POST to /api/diff
  */
 
 import { QuartzTransformerPlugin } from "../types"
 import { visit } from "unist-util-visit"
-import type { Element, Root } from "hast"
+import type { Element, Root, Text } from "hast"
 
 export interface EditableHeadingsOptions {
-  /** Heading levels to make editable. Default: [1, 2, 3, 4] */
+  /** Heading levels to make editable. Default: [1, 2, 3, 4, 5, 6] */
   levels: number[]
   /** Server endpoint to POST diffs to. Default: "/api/diff" */
   diffEndpoint: string
 }
 
 const defaultOpts: EditableHeadingsOptions = {
-  levels: [1, 2, 3, 4],
+  levels: [1, 2, 3, 4, 5, 6],
   diffEndpoint: "/api/diff",
+}
+
+/** Extract all text content from a hast node tree. */
+function extractText(node: Element): string {
+  let text = ""
+  for (const child of node.children) {
+    if (child.type === "text") {
+      text += (child as Text).value
+    } else if (child.type === "element") {
+      text += extractText(child as Element)
+    }
+  }
+  return text
+}
+
+/** Convert heading text to a URL-safe slug for use as a stable ID. */
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/^-+|-+$/g, "")
 }
 
 export const EditableHeadings: QuartzTransformerPlugin<Partial<EditableHeadingsOptions>> = (
@@ -38,19 +64,34 @@ export const EditableHeadings: QuartzTransformerPlugin<Partial<EditableHeadingsO
           visit(tree, "element", (node: Element) => {
             if (!tags.includes(node.tagName)) return
 
-            // Inject edit button as last child of each heading
+            // Derive a stable slug-based ID from the heading's text content
+            const headingText = extractText(node)
+            const headingId = slugify(headingText)
+
+            // Wrap all existing heading children in a <span data-heading-id="...">
+            const contentSpan: Element = {
+              type: "element",
+              tagName: "span",
+              properties: {
+                "data-heading-id": headingId,
+              },
+              children: node.children.slice(),
+            }
+
+            // Build the edit button (sibling to the span, not nested inside it)
             const editBtn: Element = {
               type: "element",
               tagName: "button",
               properties: {
                 className: ["edit-heading-btn"],
                 "aria-label": "Edit this section",
-                "data-heading-id": (node.properties?.id as string) ?? "",
+                "data-heading-id": headingId,
               },
               children: [{ type: "text", value: "✏️" }],
             }
 
-            node.children.push(editBtn)
+            // Replace heading children with [span, button]
+            node.children = [contentSpan, editBtn]
           })
         },
       ]
