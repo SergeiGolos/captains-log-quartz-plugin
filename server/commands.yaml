@@ -1,0 +1,17 @@
+# Commands allow-list for EmbeddedCommands plugin server
+# Only commands listed here can be triggered from the page.
+
+diff_output_dir: ./diffs
+
+commands:
+  rebuild-index:
+    cmd: npm
+    args: [run, build]
+    description: Rebuild the Quartz static site
+
+  clear-cache:
+    cmd: rm
+    args: [-rf, .quartz-cache]
+    description: Clear the Quartz build cache
+
+  # Add more safe commands here. Never expose rm -rf / or similar.

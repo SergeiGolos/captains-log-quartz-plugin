@@ -1,0 +1,15 @@
+name: quartz-plugins
+directory: ~/projects/quartz-plugins
+description: >
+  Two Quartz v4 transformer plugins:
+  1. EditableHeadings — injects a pencil icon next to each heading; clicking it opens
+     an inline editor for that section, and on save generates a unified diff file.
+  2. EmbeddedCommands — parses a custom [[cmd:name]] directive embedded in Markdown
+     and, when triggered by a user action on the page, sends a request to the hosting
+     server to execute a pre-registered shell command by name.
+technology: TypeScript, Quartz v4, unified/rehype/remark, Node.js
+github: null
+created: 2026-04-27
+docker:
+  compose_file: null
+  services: []
